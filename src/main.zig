@@ -18,11 +18,11 @@ pub fn main() !void {
 
     while (!raylib.WindowShouldClose()) {
         if (raylib.IsKeyPressed(raylib.KEY_R)) {
-            // const state: *anyopaque = hotreload.plug_pre_reload();
+            const state: *anyopaque = hotreload.plug_pre_reload();
             if (!hotreload.reload_plugin()) {
                 return error.PluginLoadFailed;
             }
-            // hotreload.plug_post_reload(state);
+            hotreload.plug_post_reload(state);
         }
 
         hotreload.plug_update();
