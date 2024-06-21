@@ -4,6 +4,8 @@ const std = @import("std");
 // declaratively construct a build graph that will be executed by an external
 // runner.
 pub fn build(b: *std.Build) void {
+    const build_plugin = b.option(bool, "build_plugin", "Only build the plugin") orelse false;
+
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -22,43 +24,38 @@ pub fn build(b: *std.Build) void {
     libplug.addLibraryPath(.{ .cwd_relative = "raylib/lib/" });
     libplug.linkSystemLibrary("raylib");
     libplug.linkLibC();
-    // b.installArtifact(lib);
-
-    // Rebuild the plug if it is enabled
-    const build_plug_cmd = b.addInstallArtifact(libplug, .{});
-    build_plug_cmd.step.dependOn(b.getInstallStep());
-    const build_plug_step = b.step("build_plug", "Build the plug");
-    build_plug_step.dependOn(&build_plug_cmd.step);
+    b.installArtifact(libplug);
 
     // --------------------
     // Executable build
     // --------------------
+    if (!build_plugin) {
+        // Executable build
+        const exe = b.addExecutable(.{
+            .name = "main",
+            .root_source_file = b.path("src/main.zig"),
+            .target = target,
+            .optimize = optimize,
+        });
+        exe.addIncludePath(.{ .cwd_relative = "raylib/include/" });
+        exe.addLibraryPath(.{ .cwd_relative = "raylib/lib/" });
+        exe.linkSystemLibrary("raylib");
+        exe.linkLibC();
+        b.installArtifact(exe);
 
-    // Executable build
-    const exe = b.addExecutable(.{
-        .name = "main",
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    exe.addIncludePath(.{ .cwd_relative = "raylib/include/" });
-    exe.addLibraryPath(.{ .cwd_relative = "raylib/lib/" });
-    exe.linkSystemLibrary("raylib");
-    exe.linkLibC();
-    b.installArtifact(exe);
+        // Build the executable if it is enabled
+        const build_exe_cmd = b.addInstallArtifact(exe, .{});
+        build_exe_cmd.step.dependOn(b.getInstallStep());
+        const build_exe_step = b.step("build_main", "Build the executable");
+        build_exe_step.dependOn(&build_exe_cmd.step);
 
-    // Build the executable if it is enabled
-    const build_exe_cmd = b.addInstallArtifact(exe, .{});
-    build_exe_cmd.step.dependOn(b.getInstallStep());
-    const build_exe_step = b.step("build_main", "Build the executable");
-    build_exe_step.dependOn(&build_exe_cmd.step);
-
-    // Run command
-    const run_cmd = b.addRunArtifact(exe);
-    run_cmd.step.dependOn(b.getInstallStep());
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
+        // Run command
+        const run_cmd = b.addRunArtifact(exe);
+        run_cmd.step.dependOn(b.getInstallStep());
+        if (b.args) |args| {
+            run_cmd.addArgs(args);
+        }
+        const run_step = b.step("run", "Run the app");
+        run_step.dependOn(&run_cmd.step);
     }
-    const run_step = b.step("run", "Run the app");
-    run_step.dependOn(&run_cmd.step);
 }
