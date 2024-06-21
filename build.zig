@@ -12,16 +12,20 @@ pub fn build(b: *std.Build) void {
     // --------------------
 
     // Library build
-    const lib = b.addSharedLibrary(.{
+    const libplug = b.addSharedLibrary(.{
         .name = "plug",
         .root_source_file = b.path("src/plug.zig"),
         .target = target,
         .optimize = optimize,
     });
+    libplug.addIncludePath(.{ .cwd_relative = "raylib/include/" });
+    libplug.addLibraryPath(.{ .cwd_relative = "raylib/lib/" });
+    libplug.linkSystemLibrary("raylib");
+    libplug.linkLibC();
     // b.installArtifact(lib);
 
     // Rebuild the plug if it is enabled
-    const build_plug_cmd = b.addInstallArtifact(lib, .{});
+    const build_plug_cmd = b.addInstallArtifact(libplug, .{});
     build_plug_cmd.step.dependOn(b.getInstallStep());
     const build_plug_step = b.step("build_plug", "Build the plug");
     build_plug_step.dependOn(&build_plug_cmd.step);
@@ -37,10 +41,10 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    exe.linkLibC();
     exe.addIncludePath(.{ .cwd_relative = "raylib/include/" });
     exe.addLibraryPath(.{ .cwd_relative = "raylib/lib/" });
     exe.linkSystemLibrary("raylib");
+    exe.linkLibC();
     b.installArtifact(exe);
 
     // Build the executable if it is enabled

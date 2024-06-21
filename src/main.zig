@@ -1,24 +1,66 @@
 const std = @import("std");
+const raylib = @cImport({
+    @cInclude("raylib.h");
+});
+
+var libplug: std.DynLib = undefined;
+const libplug_path = "libplug.so";
+
+var plug_init: *const fn () void = undefined;
+var plug_destroy: *const fn () void = undefined;
+var plug_pre_reload: *const fn () *anyopaque = undefined;
+var plug_post_reload: *const fn (*anyopaque) void = undefined;
+var plug_update: *const fn () void = undefined;
 
 pub fn main() !void {
-    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    if (!reload_plugin()) {
+        return error.PluginLoadFailed;
+    }
 
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    plug_init();
+    defer plug_destroy();
+    raylib.InitWindow(800, 600, "Hot reloading");
+    defer raylib.CloseWindow();
 
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    while (!raylib.WindowShouldClose()) {
+        if (raylib.IsKeyPressed(raylib.KEY_R)) {
+            const state: *anyopaque = plug_pre_reload();
+            if (!reload_plugin()) {
+                return error.PluginLoadFailed;
+            }
+            plug_post_reload(state);
+        }
 
-    try bw.flush(); // don't forget to flush!
+        plug_update();
+    }
+
+    if (!unload_plugin()) {
+        return error.PluginUnloadFailed;
+    }
 }
 
-test "simple test" {
-    var list = std.ArrayList(i32).init(std.testing.allocator);
-    defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
-    try list.append(42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
+fn reload_plugin() bool {
+    if (libplug != undefined) {
+        std.DynLib.close(libplug);
+    }
+
+    libplug = std.DynLib.open(libplug_path) catch {
+        return false;
+    };
+
+    plug_init = libplug.lookup(@TypeOf(plug_init), "plug_init") orelse return false;
+    plug_destroy = libplug.lookup(@TypeOf(plug_destroy), "plug_destroy") orelse return false;
+    plug_pre_reload = libplug.lookup(@TypeOf(plug_pre_reload), "plug_pre_reload") orelse return false;
+    plug_post_reload = libplug.lookup(@TypeOf(plug_post_reload), "plug_post_reload") orelse return false;
+    plug_update = libplug.lookup(@TypeOf(plug_update), "plug_update") orelse return false;
+
+    return true;
+}
+
+fn unload_plugin() bool {
+    if (libplug != undefined) {
+        std.DynLib.close(libplug);
+        libplug = undefined;
+    }
+    return true;
 }
