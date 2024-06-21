@@ -8,6 +8,19 @@ Checkout [Hot reloading in C](https://github.com/glasPal6/C_Hot_Reloading) for a
 
 ## Build
 
+To build the whole project run:
+
+```
+zig build -Dbuild_plugin=false
+```
+This will make the plugin library and the main executable.
+
+To build just the plugin run:
+
+```
+zig build -Dbuild_plugin=true
+```
+which will reload the plugin into the main executable that is running. In this case, ```plug.c``` is reloaded by pressing the R key in the main executable.
 
 # Basic background theory
 
