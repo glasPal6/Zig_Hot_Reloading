@@ -5,6 +5,7 @@ const std = @import("std");
 // runner.
 pub fn build(b: *std.Build) void {
     const build_plugin = b.option(bool, "build_plugin", "Only build the plugin") orelse false;
+    const disable_hotreload = b.option(bool, "disable_hotreload", "Disable hot reloading") orelse false;
 
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -40,8 +41,14 @@ pub fn build(b: *std.Build) void {
         exe.addIncludePath(.{ .cwd_relative = "raylib/include/" });
         exe.addLibraryPath(.{ .cwd_relative = "raylib/lib/" });
         exe.linkSystemLibrary("raylib");
+        exe.linkLibrary(libplug);
         exe.linkLibC();
         b.installArtifact(exe);
+
+        // Pass hot reload option
+        const exe_options = b.addOptions();
+        exe_options.addOption(bool, "disable_hotreload", disable_hotreload);
+        exe.root_module.addOptions("config", exe_options);
 
         // Build the executable if it is enabled
         const build_exe_cmd = b.addInstallArtifact(exe, .{});

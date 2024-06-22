@@ -11,6 +11,7 @@ pub fn main() !void {
     }
     defer _ = hotreload.unload_plugin();
 
+    std.debug.print("Hello, World!\n", .{});
     hotreload.plug_init();
     defer hotreload.plug_destroy();
     raylib.InitWindow(800, 600, "Hot reloading");

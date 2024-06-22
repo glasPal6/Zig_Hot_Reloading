@@ -22,6 +22,8 @@ zig build -Dbuild_plugin=true
 ```
 which will reload the plugin into the main executable that is running. In this case, ```plug.c``` is reloaded by pressing the R key in the main executable.
 
+Hot reloading can be enabled with `-Ddisable_honreload=true`.
+
 # Basic background theory
 
 In C and Zig there are static and dynamic libraries. A static library is a library that is linked into the project and the code is included in the binary. We cannot change something in the binary while it is runnig so we cannot us static libraries for this use case. 
