@@ -30,10 +30,10 @@ export fn plug_post_reload(state: *anyopaque) void {
 
 export fn plug_update() void {
     raylib.BeginDrawing();
-    defer raylib.EndDrawing();
-
     raylib.ClearBackground(p.background);
 
     // raylib.DrawText("Hello, World!", 100, 100, 20, raylib.WHITE);
     // raylib.DrawText("This is the Hot Reloading plugin working", 100, 150, 15, raylib.WHITE);
+
+    defer raylib.EndDrawing();
 }
