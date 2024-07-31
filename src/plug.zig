@@ -35,5 +35,5 @@ export fn plug_update() void {
     // raylib.DrawText("Hello, World!", 100, 100, 20, raylib.WHITE);
     // raylib.DrawText("This is the Hot Reloading plugin working", 100, 150, 15, raylib.WHITE);
 
-    defer raylib.EndDrawing();
+    raylib.EndDrawing();
 }
