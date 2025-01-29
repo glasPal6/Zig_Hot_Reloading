@@ -2,21 +2,19 @@
 
 Hot Reloading is useful in projects where quick iteration is required, such as in game dev where you want to quickly see the outcome of your changes without having to recompile everything.
 
-The purpose of this is to build a basic Hot Reloading example with raylib.
+The purpose of this is to build a basic Hot Reloading example with raylib, but it can be used in any project. It is just easier to see the library change with a GUI.
 
 Checkout [Hot reloading in C](https://github.com/glasPal6/C_Hot_Reloading) for a C version.
 
 ## Build
 
 To build the whole project run:
-
 ```
 zig build -Dbuild_plugin=false
 ```
 This will make the plugin library and the main executable.
 
 To build just the plugin run:
-
 ```
 zig build -Dbuild_plugin=true
 ```
