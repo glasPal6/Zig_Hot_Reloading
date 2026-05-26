@@ -1,4 +1,4 @@
-# Hot Reloading in zid
+# Hot Reloading in Zig 0.13.0
 
 Hot Reloading is useful in projects where quick iteration is required, such as in game dev where you want to quickly see the outcome of your changes without having to recompile everything.
 
